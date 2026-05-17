@@ -75,6 +75,22 @@ src/
       GameSelect.tsx
       games.ts
   features/
+    balloon-pop/
+      BalloonPop.tsx
+      engine/
+        balloon-engine.ts
+    boxing-pvp/
+      BoxingPvP.tsx
+      engine/
+        boxing-engine.ts
+    penalty/
+      Penalty.tsx
+      engine/
+        penalty-engine.ts
+    pilates-flow/
+      PilatesFlow.tsx
+      engine/
+        pilates-engine.ts
     subway-runner/
       SubwayRunner.tsx
       engine/
@@ -90,6 +106,22 @@ src/
         PoseCameraPanel.tsx
       render/
         RunnerScene.tsx
+    zumba-dance/
+      ZumbaDance.tsx
+      engine/
+        zumba-engine.ts
+  shared/
+    components/
+      GameHUD.tsx
+      GameOverModal.tsx
+      GameTopbar.tsx
+      PrototypeGameShell.tsx
+    game-engine/
+      prototype-engine.ts
+      prototype-engine.test.ts
+    hooks/
+      useGameLoop.ts
+      useHighScore.ts
 ```
 
 ## Main Files
@@ -100,12 +132,47 @@ Top-level app screen state:
 
 - `select`: shows game selection.
 - `runner`: shows Subway Runner.
+- `zumba`, `boxing`, `balloon`, `penalty`, `pilates`: show playable first versions of the new games.
 
 It passes `onBackToGames` into `SubwayRunner`, so voice command `oyunlara qayit` can return to the game selection screen.
 
 ### `src/components/game-select/*`
 
-Game selection UI. Subway Runner is active. Other games are shown as future/coming soon. Future games should be added here first, then connected to routing/screen state.
+Game selection UI. All six games are active. Each card calls its own start callback. The game catalog includes emoji, category, difficulty, duration, players, tags, and active status.
+
+### `src/shared/*`
+
+Shared platform layer added after the first MVP:
+
+- `GameTopbar`: consistent back navigation and title.
+- `GameHUD`: reusable score/time/status HUD.
+- `GameOverModal`: reusable result screen.
+- `PrototypeGameShell`: playable TV-friendly game shell for the five non-runner games.
+- `useGameLoop`: shared `requestAnimationFrame` loop.
+- `useHighScore`: localStorage highscore helper.
+- `prototype-engine.ts`: pure reusable engine for action/beat games.
+
+The prototype engine is intentionally generic. Each new game provides its own `PrototypeGameDefinition` with title, theme, duration, lives, beat timing, metric label, high score key, and action list.
+
+Current controls for prototype games:
+
+- `Enter`: start/resume
+- `P`: pause
+- `R`: restart
+- `Space`: hit the currently highlighted action
+- `1-4`: hit a specific action pad
+
+### New Game Feature Folders
+
+Current state of the five new games:
+
+- `zumba-dance`: beat/action dance prototype with combo scoring.
+- `boxing-pvp`: strike/block combo prototype.
+- `balloon-pop`: timed color balloon pop prototype.
+- `penalty`: shot-zone timing prototype.
+- `pilates-flow`: slower pose-hold/accuracy prototype.
+
+These are playable first versions, not final MediaPipe-specific full games yet. Their engines define the game rhythm and scoring so future pose hooks can map body gestures directly to action ids.
 
 ### `src/features/subway-runner/SubwayRunner.tsx`
 
@@ -234,6 +301,19 @@ Right-side camera and voice control panel:
 Three.js scene and animation loop.
 
 Keep this file responsible for rendering only. Avoid putting game rules here. Game rules belong in `runner-engine.ts`.
+
+Current visual upgrades:
+
+- shadow map enabled
+- neon road lines and side lights
+- star field
+- procedural moving buildings with glowing windows
+- humanoid player instead of plain capsule
+- particle dust/trail
+- coin glow/pulse
+- obstacle edge glow
+- collision particle burst and camera shake
+- speed-reactive fog/neon intensity
 
 ## Important Product Decisions
 

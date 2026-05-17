@@ -10,6 +10,7 @@ export type GameCard = {
   description: string;
   tags: string[];
   status: "active" | "soon";
+  emoji: string;
 };
 
 export const GAMES: GameCard[] = [
@@ -22,7 +23,8 @@ export const GAMES: GameCard[] = [
     duration: "sonsuz",
     description: "Qac, tullan, eyil. Ne qeder uzaq geden bilirsen?",
     tags: ["cardio", "runner", "pose-ready"],
-    status: "active"
+    status: "active",
+    emoji: "🏃"
   },
   {
     id: "zumba-dance",
@@ -33,7 +35,8 @@ export const GAMES: GameCard[] = [
     duration: "3-10 deq",
     description: "Ritme uygun reqs et, XP topla.",
     tags: ["dance", "music"],
-    status: "soon"
+    status: "active",
+    emoji: "💃"
   },
   {
     id: "boxing-pvp",
@@ -44,7 +47,8 @@ export const GAMES: GameCard[] = [
     duration: "3 raund",
     description: "Refleks, blok ve combo zerbeleri.",
     tags: ["pvp", "hiit"],
-    status: "soon"
+    status: "active",
+    emoji: "🥊"
   },
   {
     id: "balloon-pop",
@@ -55,7 +59,8 @@ export const GAMES: GameCard[] = [
     duration: "60 san",
     description: "Rengli balonlara toxun ve xal qazan.",
     tags: ["kids", "coordination"],
-    status: "soon"
+    status: "active",
+    emoji: "🎈"
   },
   {
     id: "penalty",
@@ -66,7 +71,8 @@ export const GAMES: GameCard[] = [
     duration: "5 zerbe",
     description: "Penaltici ve qapici rollari deyisir.",
     tags: ["football", "local"],
-    status: "soon"
+    status: "active",
+    emoji: "⚽"
   },
   {
     id: "pilates-flow",
@@ -77,7 +83,8 @@ export const GAMES: GameCard[] = [
     duration: "10-20 deq",
     description: "Pozani saxla, real-time feedback al.",
     tags: ["mobility", "balance"],
-    status: "soon"
+    status: "active",
+    emoji: "🧘"
   }
 ];
 

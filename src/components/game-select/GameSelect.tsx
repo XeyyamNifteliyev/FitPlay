@@ -6,12 +6,32 @@ import { CATEGORY_LABELS, GAMES, type GameCategory } from "./games";
 
 type GameSelectProps = {
   onStartSubway: () => void;
+  onStartZumba: () => void;
+  onStartBoxing: () => void;
+  onStartBalloon: () => void;
+  onStartPenalty: () => void;
+  onStartPilates: () => void;
 };
 
 const CATEGORIES: GameCategory[] = ["all", "women", "men", "kids"];
 
-export function GameSelect({ onStartSubway }: GameSelectProps) {
+export function GameSelect({
+  onStartSubway,
+  onStartZumba,
+  onStartBoxing,
+  onStartBalloon,
+  onStartPenalty,
+  onStartPilates
+}: GameSelectProps) {
   const [category, setCategory] = useState<GameCategory>("all");
+  const startHandlers: Record<string, () => void> = {
+    "subway-runner": onStartSubway,
+    "zumba-dance": onStartZumba,
+    "boxing-pvp": onStartBoxing,
+    "balloon-pop": onStartBalloon,
+    penalty: onStartPenalty,
+    "pilates-flow": onStartPilates
+  };
 
   const games = useMemo(
     () =>
@@ -57,6 +77,9 @@ export function GameSelect({ onStartSubway }: GameSelectProps) {
               <span>{game.players} oyuncu</span>
               <span>{game.duration}</span>
             </div>
+            <div className="game-card__emoji" aria-hidden="true">
+              {game.emoji}
+            </div>
             <h2>{game.title}</h2>
             <p>{game.description}</p>
             <div className="game-card__meta">
@@ -66,7 +89,7 @@ export function GameSelect({ onStartSubway }: GameSelectProps) {
               ))}
             </div>
             {game.status === "active" ? (
-              <button type="button" onClick={onStartSubway}>
+              <button type="button" onClick={startHandlers[game.id]}>
                 Oyna
               </button>
             ) : (
