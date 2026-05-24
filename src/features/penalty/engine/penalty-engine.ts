@@ -1,7 +1,7 @@
 import type { PrototypeGameDefinition } from "@/shared/game-engine/prototype-engine";
 
 export const PENALTY_DEFINITION: PrototypeGameDefinition = {
-  title: "Futbol Penalti",
+  title: "Sports Stadium",
   theme: "penalty",
   durationSeconds: 55,
   highScoreKey: "fitplay:penalty:highscore",

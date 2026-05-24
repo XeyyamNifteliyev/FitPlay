@@ -1,7 +1,7 @@
 import type { PrototypeGameDefinition } from "@/shared/game-engine/prototype-engine";
 
 export const BOXING_DEFINITION: PrototypeGameDefinition = {
-  title: "Boks PvP",
+  title: "Boxing Arena",
   theme: "boxing",
   durationSeconds: 90,
   highScoreKey: "fitplay:boxing-pvp:highscore",

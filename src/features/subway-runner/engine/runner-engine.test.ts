@@ -4,7 +4,8 @@ import {
   createInitialRunnerState,
   getObstacleBounds,
   handleRunnerCommand,
-  tickRunner
+  tickRunner,
+  getCurrentTheme
 } from "./runner-engine";
 
 describe("runner engine", () => {
@@ -86,18 +87,100 @@ describe("runner engine", () => {
   });
 
   it("sets game over when the player collides with an obstacle", () => {
-    const obstacle = getObstacleBounds(createInitialRunnerState())[0];
     const state = tickRunner(
       {
         ...createInitialRunnerState(),
         status: "running",
-        playerLane: obstacle.lane,
-        obstacles: [{ ...obstacle, z: 0 }]
+        playerLane: 0,
+        obstacles: [{ id: "barrier-test", lane: 0, z: 0, kind: "barrier" }]
       },
       0.016
     );
 
     expect(state.status).toBe("gameOver");
+  });
+
+  it("sets game over when the player collides with a train", () => {
+    const state = tickRunner(
+      {
+        ...createInitialRunnerState(),
+        status: "running",
+        playerLane: 0,
+        obstacles: [{ id: "train-test", lane: 0, z: 0, kind: "train" }]
+      },
+      0.016
+    );
+
+    expect(state.status).toBe("gameOver");
+    expect(state.chaser.caught).toBe(true);
+  });
+
+  it("allows jumping over platform gaps", () => {
+    let state = handleRunnerCommand(
+      {
+        ...createInitialRunnerState(),
+        status: "running",
+        playerLane: 0,
+        obstacles: [{ id: "gap-test", lane: 0, z: 0, kind: "gap" }]
+      },
+      "jump"
+    );
+
+    state = tickRunner(state, 0.016);
+
+    expect(state.status).toBe("running");
+  });
+
+  it("uses hoverboard as a one-hit train shield", () => {
+    const state = tickRunner(
+      {
+        ...createInitialRunnerState(),
+        status: "running",
+        playerLane: 0,
+        powerUp: "hoverboard",
+        shieldHits: 1,
+        obstacles: [{ id: "train-test", lane: 0, z: 0, kind: "train" }]
+      },
+      0.016
+    );
+
+    expect(state.status).toBe("running");
+    expect(state.powerUp).toBe("none");
+    expect(state.shieldHits).toBe(0);
+    expect(state.chaser.distance).toBeLessThan(26);
+  });
+
+  it("pulls nearby coins with magnet across adjacent lanes", () => {
+    const state = tickRunner(
+      {
+        ...createInitialRunnerState(),
+        status: "running",
+        playerLane: 0,
+        powerUp: "magnet",
+        powerUpTimer: 5,
+        obstacles: [{ id: "coin-test", lane: 1, z: 2, kind: "coin" }]
+      },
+      0.016
+    );
+
+    expect(state.obstacles[0].collected).toBe(true);
+    expect(state.score).toBeGreaterThanOrEqual(50);
+    expect(state.combo).toBeGreaterThan(0);
+  });
+
+  it("recovers chaser distance while running cleanly", () => {
+    const state = tickRunner(
+      {
+        ...createInitialRunnerState(),
+        status: "running",
+        obstacles: [],
+        chaser: { distance: 10, warningLevel: 2, caught: false }
+      },
+      1
+    );
+
+    expect(state.chaser.distance).toBeGreaterThan(10);
+    expect(state.chaser.caught).toBe(false);
   });
 
   it("resets score, status, lane, and movement when restarted", () => {
@@ -117,5 +200,35 @@ describe("runner engine", () => {
     expect(state.distance).toBe(0);
     expect(state.playerLane).toBe(0);
     expect(state.movement).toBe("running");
+    expect(state.chaser.caught).toBe(false);
+  });
+
+  it("tracks theme index based on distance", () => {
+    let state = { ...createInitialRunnerState(), status: "running", obstacles: [] };
+    expect(state.themeIndex).toBe(0);
+
+    state = { ...state, distance: 300 };
+    state = tickRunner(state, 0.016);
+    expect(state.themeIndex).toBeGreaterThanOrEqual(1);
+  });
+
+  it("starts with no power-up active", () => {
+    const state = createInitialRunnerState();
+    expect(state.powerUp).toBe("none");
+    expect(state.powerUpTimer).toBe(0);
+    expect(state.shieldHits).toBe(0);
+  });
+
+  it("defaults to bakuMetro theme at index 0", () => {
+    const state = createInitialRunnerState();
+    expect(getCurrentTheme(state)).toBe("bakuMetro");
+  });
+
+  it("cycles themes through the four world themes", () => {
+    expect(getCurrentTheme({ ...createInitialRunnerState(), themeIndex: 0 })).toBe("bakuMetro");
+    expect(getCurrentTheme({ ...createInitialRunnerState(), themeIndex: 1 })).toBe("icherisheher");
+    expect(getCurrentTheme({ ...createInitialRunnerState(), themeIndex: 2 })).toBe("bulvar");
+    expect(getCurrentTheme({ ...createInitialRunnerState(), themeIndex: 3 })).toBe("neonNight");
+    expect(getCurrentTheme({ ...createInitialRunnerState(), themeIndex: 4 })).toBe("bakuMetro");
   });
 });

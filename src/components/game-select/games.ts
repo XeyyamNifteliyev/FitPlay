@@ -16,75 +16,75 @@ export type GameCard = {
 export const GAMES: GameCard[] = [
   {
     id: "subway-runner",
-    title: "Subway Runner",
+    title: "FitRun Metro Chase",
     category: ["women", "men", "all"],
     difficulty: "asan",
     players: "1",
     duration: "sonsuz",
-    description: "Qac, tullan, eyil. Ne qeder uzaq geden bilirsen?",
-    tags: ["cardio", "runner", "pose-ready"],
+    description: "Metro relslerinde qac, qatarlarin arasindan kec, pullari topla.",
+    tags: ["3D runner", "kamera", "chase"],
     status: "active",
-    emoji: "🏃"
+    emoji: "RUN"
   },
   {
     id: "zumba-dance",
-    title: "Zumba Dance",
+    title: "Dance Quest",
     category: ["women", "all"],
     difficulty: "orta",
     players: "1-4",
     duration: "3-10 deq",
-    description: "Ritme uygun reqs et, XP topla.",
-    tags: ["dance", "music"],
+    description: "Ritmle qol ve beden hereketlerini tut, combo ve XP qazan.",
+    tags: ["reqs", "ritm", "party"],
     status: "active",
-    emoji: "💃"
+    emoji: "DNC"
   },
   {
     id: "boxing-pvp",
-    title: "Boks PvP",
+    title: "Boxing Arena",
     category: ["men", "all"],
     difficulty: "orta",
     players: "1-2",
     duration: "3 raund",
-    description: "Refleks, blok ve combo zerbeleri.",
-    tags: ["pvp", "hiit"],
+    description: "Jab, blok, combo ve reflekslerle ringde xal ustunluyu qur.",
+    tags: ["ring", "HIIT", "refleks"],
     status: "active",
-    emoji: "🥊"
+    emoji: "BOX"
   },
   {
     id: "balloon-pop",
-    title: "Balon Partlatma",
+    title: "Balloon Party 3D",
     category: ["kids", "all"],
     difficulty: "asan",
     players: "1",
     duration: "60 san",
-    description: "Rengli balonlara toxun ve xal qazan.",
-    tags: ["kids", "coordination"],
+    description: "Ellerle ucan balonlari vur, rengli burstlerle xal topla.",
+    tags: ["usaq", "el-koordinasiya"],
     status: "active",
-    emoji: "🎈"
+    emoji: "POP"
   },
   {
     id: "penalty",
-    title: "Futbol Penalti",
+    title: "Sports Stadium",
     category: ["men", "all"],
     difficulty: "orta",
     players: "2",
     duration: "5 zerbe",
-    description: "Penaltici ve qapici rollari deyisir.",
-    tags: ["football", "local"],
+    description: "Penalti vur, qapici kimi tullan, stadion atmosferini yasa.",
+    tags: ["futbol", "kick", "stadion"],
     status: "active",
-    emoji: "⚽"
+    emoji: "GOAL"
   },
   {
     id: "pilates-flow",
-    title: "Pilates Flow",
+    title: "Balance Garden",
     category: ["women", "all"],
     difficulty: "orta",
     players: "1",
     duration: "10-20 deq",
-    description: "Pozani saxla, real-time feedback al.",
-    tags: ["mobility", "balance"],
+    description: "Pozani saxla, nefes ritmini tut, balans ve mobillik qazan.",
+    tags: ["balans", "mobility", "sakit"],
     status: "active",
-    emoji: "🧘"
+    emoji: "ZEN"
   }
 ];
 

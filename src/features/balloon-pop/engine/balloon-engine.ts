@@ -1,7 +1,7 @@
 import type { PrototypeGameDefinition } from "@/shared/game-engine/prototype-engine";
 
 export const BALLOON_DEFINITION: PrototypeGameDefinition = {
-  title: "Balon Partlatma",
+  title: "Balloon Party 3D",
   theme: "balloon",
   durationSeconds: 60,
   highScoreKey: "fitplay:balloon-pop:highscore",

@@ -44,74 +44,41 @@ export type VoiceCommand =
   | "selectSubway"
   | "stop";
 
-const NO_COMMAND: PoseGestureResult = {
-  command: null,
-  label: "Neytral",
-  confidence: 0
+import {
+  createCalibrationFromLandmarks as sharedCreateCalibration,
+  classifyMotionGesture,
+  getSensitivityConfig as sharedGetConfig
+} from "../../../shared/motion/gesture-classifier";
+import { shouldEmitMotionCommand } from "../../../shared/motion/gesture-cooldowns";
+import { parseVoiceCommand as sharedParseVoice, type VoiceCommand as SharedVoiceCommand } from "../../../shared/voice/voice-commands";
+
+const MOTION_TO_RUNNER: Record<string, RunnerCommand | null> = {
+  leanLeft: "moveLeft",
+  leanRight: "moveRight",
+  stepLeft: "moveLeft",
+  stepRight: "moveRight",
+  jump: "jump",
+  slide: "slide",
+  squat: "slide"
 };
 
-const LANDMARK = {
-  nose: 0,
-  leftShoulder: 11,
-  rightShoulder: 12,
-  leftHip: 23,
-  rightHip: 24,
-  leftKnee: 25,
-  rightKnee: 26,
-  leftAnkle: 27,
-  rightAnkle: 28
-} as const;
+function motionToRunner(motion: string | null): RunnerCommand | null {
+  if (!motion) return null;
+  return MOTION_TO_RUNNER[motion] ?? null;
+}
 
-const MIN_VISIBILITY = 0.5;
-
-const SENSITIVITY_CONFIG: Record<PoseSensitivityMode, PoseSensitivityConfig> = {
-  normal: {
-    verticalRatio: 0.09,
-    lateralThreshold: 0.07,
-    cooldownMs: 620,
-    videoWidth: 640,
-    videoHeight: 480,
-    uiUpdateMs: 120
-  },
-  fast: {
-    verticalRatio: 0.055,
-    lateralThreshold: 0.045,
-    cooldownMs: 220,
-    videoWidth: 320,
-    videoHeight: 240,
-    uiUpdateMs: 220
-  }
-};
+function sharedVoiceToLocal(cmd: SharedVoiceCommand | null): VoiceCommand | null {
+  if (!cmd) return null;
+  if (cmd === "openCalibration") return "calibrate";
+  if (cmd === "cameraStop") return "stop";
+  return cmd as VoiceCommand;
+}
 
 export function createCalibrationFromLandmarks(
   landmarks: PoseLandmark[],
   mode: PoseTrackingMode = "fullBody"
 ): PoseCalibration | null {
-  if (!hasRequiredVisibility(landmarks, mode)) {
-    return null;
-  }
-
-  const shoulder = averagePoint(
-    landmarks[LANDMARK.leftShoulder],
-    landmarks[LANDMARK.rightShoulder]
-  );
-  const hip = averagePoint(landmarks[LANDMARK.leftHip], landmarks[LANDMARK.rightHip]);
-  const lowerBody = hasFullBodyVisibility(landmarks)
-    ? averagePoint(landmarks[LANDMARK.leftAnkle], landmarks[LANDMARK.rightAnkle])
-    : null;
-  const bodyHeight = Math.max(
-    0.18,
-    lowerBody
-      ? lowerBody.y - landmarks[LANDMARK.nose].y
-      : (hip.y - landmarks[LANDMARK.nose].y) * 1.45
-  );
-
-  return {
-    centerX: (shoulder.x + hip.x) / 2,
-    shoulderY: shoulder.y,
-    hipY: hip.y,
-    bodyHeight
-  };
+  return sharedCreateCalibration(landmarks, mode);
 }
 
 export function classifyPoseGesture(
@@ -120,74 +87,21 @@ export function classifyPoseGesture(
   mode: PoseTrackingMode = "fullBody",
   sensitivity: PoseSensitivityMode = "normal"
 ): PoseGestureResult {
-  const config = getPoseSensitivityConfig(sensitivity);
-
-  if (!calibration || !hasRequiredVisibility(landmarks, mode)) {
-    return {
-      command: null,
-      label:
-        mode === "fullBody"
-          ? "TV rejimi: basdan ayaga gorunmelisen"
-          : "Beden kamerada tam gorunmur",
-      confidence: 0
-    };
-  }
-
-  const shoulder = averagePoint(
-    landmarks[LANDMARK.leftShoulder],
-    landmarks[LANDMARK.rightShoulder]
-  );
-  const hip = averagePoint(landmarks[LANDMARK.leftHip], landmarks[LANDMARK.rightHip]);
-  const centerX = (shoulder.x + hip.x) / 2;
-
-  const jumpDelta = calibration.hipY - hip.y;
-  const shoulderLift = calibration.shoulderY - shoulder.y;
-  const slideDelta = hip.y - calibration.hipY;
-  const lateralDelta = centerX - calibration.centerX;
-  const verticalThreshold = calibration.bodyHeight * config.verticalRatio;
-  const shoulderJumpThreshold = verticalThreshold * 0.45;
-  const lateralThreshold = config.lateralThreshold;
-
-  if (jumpDelta > verticalThreshold && shoulderLift > shoulderJumpThreshold) {
-    return {
-      command: "jump",
-      label: "Tullanma",
-      confidence: clampConfidence(jumpDelta / verticalThreshold)
-    };
-  }
-
-  if (slideDelta > verticalThreshold) {
-    return {
-      command: "slide",
-      label: "Slide",
-      confidence: clampConfidence(slideDelta / verticalThreshold)
-    };
-  }
-
-  if (lateralDelta < -lateralThreshold) {
-    return {
-      command: "moveLeft",
-      label: "Sola kec",
-      confidence: clampConfidence(Math.abs(lateralDelta) / lateralThreshold)
-    };
-  }
-
-  if (lateralDelta > lateralThreshold) {
-    return {
-      command: "moveRight",
-      label: "Saga kec",
-      confidence: clampConfidence(lateralDelta / lateralThreshold)
-    };
-  }
-
-  return NO_COMMAND;
+  const result = classifyMotionGesture(landmarks, calibration, mode, sensitivity);
+  return {
+    command: motionToRunner(result.command),
+    label: result.label,
+    confidence: result.confidence
+  };
 }
 
 export function getPoseSensitivityConfig(
   mode: PoseSensitivityMode
 ): PoseSensitivityConfig {
-  return SENSITIVITY_CONFIG[mode];
+  return sharedGetConfig(mode);
 }
+
+const RUNNER_SIDE_STEPS = new Set<string>(["moveLeft", "moveRight"]);
 
 export function shouldEmitPoseCommand(
   previousCommand: RunnerCommand | null,
@@ -196,148 +110,12 @@ export function shouldEmitPoseCommand(
   cooldownMs: number,
   previousAt = Number.NEGATIVE_INFINITY
 ) {
-  if (!nextCommand) {
-    return false;
-  }
-
-  if (previousCommand !== nextCommand) {
-    return true;
-  }
-
-  if (isSideStepCommand(nextCommand)) {
-    return false;
-  }
-
+  if (!nextCommand) return false;
+  if (previousCommand !== nextCommand) return true;
+  if (RUNNER_SIDE_STEPS.has(nextCommand)) return false;
   return now - previousAt >= cooldownMs;
 }
 
 export function parseVoiceCommand(transcript: string): VoiceCommand | null {
-  const normalized = normalizeVoice(transcript);
-
-  if (includesAny(normalized, ["oyunlara qayit", "oyunlara kayit", "menyu", "geri"])) {
-    return "backToGames";
-  }
-
-  if (
-    includesAny(normalized, [
-      "subway runner",
-      "sabvey runner",
-      "subway",
-      "qacis oyunu",
-      "qacis"
-    ])
-  ) {
-    return "selectSubway";
-  }
-
-  if (includesAny(normalized, ["davam et", "devam et", "resume", "davam"])) {
-    return "resume";
-  }
-
-  if (
-    includesAny(normalized, [
-      "kamerani dayandir",
-      "kamera dayandir",
-      "kamerani saxla",
-      "camera stop",
-      "stop camera"
-    ])
-  ) {
-    return "stop";
-  }
-
-  if (includesAny(normalized, ["kamera ac", "kamerani ac", "camera", "kamera"])) {
-    return "camera";
-  }
-
-  if (includesAny(normalized, ["kalibrasiya", "kalibre", "calibrate"])) {
-    return "calibrate";
-  }
-
-  if (includesAny(normalized, ["yeniden", "restart", "tekrar"])) {
-    return "restart";
-  }
-
-  if (includesAny(normalized, ["pauza", "pause", "dayan", "saxla"])) {
-    return "pause";
-  }
-
-  if (
-    includesAny(normalized, [
-      "basla",
-      "bashla",
-      "baslat",
-      "baslayir",
-      "basliyaq",
-      "start",
-      "oyna"
-    ])
-  ) {
-    return "start";
-  }
-
-  return null;
-}
-
-function hasRequiredVisibility(landmarks: PoseLandmark[], mode: PoseTrackingMode) {
-  if (mode === "laptop") {
-    return hasUpperBodyVisibility(landmarks);
-  }
-
-  return hasUpperBodyVisibility(landmarks) && hasFullBodyVisibility(landmarks);
-}
-
-function hasUpperBodyVisibility(landmarks: PoseLandmark[]) {
-  return [
-    LANDMARK.nose,
-    LANDMARK.leftShoulder,
-    LANDMARK.rightShoulder,
-    LANDMARK.leftHip,
-    LANDMARK.rightHip
-  ].every((index) => (landmarks[index]?.visibility ?? 1) >= MIN_VISIBILITY);
-}
-
-function hasFullBodyVisibility(landmarks: PoseLandmark[]) {
-  return [
-    LANDMARK.leftKnee,
-    LANDMARK.rightKnee,
-    LANDMARK.leftAnkle,
-    LANDMARK.rightAnkle
-  ].every((index) => (landmarks[index]?.visibility ?? 1) >= MIN_VISIBILITY);
-}
-
-function averagePoint(left: PoseLandmark, right: PoseLandmark) {
-  return {
-    x: (left.x + right.x) / 2,
-    y: (left.y + right.y) / 2
-  };
-}
-
-function clampConfidence(value: number) {
-  return Math.max(0, Math.min(1, value));
-}
-
-function isSideStepCommand(command: RunnerCommand) {
-  return command === "moveLeft" || command === "moveRight";
-}
-
-function normalizeVoice(value: string) {
-  return value
-    .toLocaleLowerCase("az")
-    .normalize("NFD")
-    .replace(/\p{Mark}/gu, "")
-    .replaceAll("ə", "e")
-    .replaceAll("ı", "i")
-    .replaceAll("ö", "o")
-    .replaceAll("ü", "u")
-    .replaceAll("ğ", "g")
-    .replaceAll("ş", "s")
-    .replaceAll("ç", "c")
-    .replace(/[^\p{Letter}\p{Number}\s]/gu, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function includesAny(value: string, candidates: string[]) {
-  return candidates.some((candidate) => value.includes(candidate));
+  return sharedVoiceToLocal(sharedParseVoice(transcript));
 }

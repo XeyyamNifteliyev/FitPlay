@@ -1,7 +1,7 @@
 import type { PrototypeGameDefinition } from "@/shared/game-engine/prototype-engine";
 
 export const PILATES_DEFINITION: PrototypeGameDefinition = {
-  title: "Pilates Flow",
+  title: "Balance Garden",
   theme: "pilates",
   durationSeconds: 120,
   highScoreKey: "fitplay:pilates-flow:highscore",

@@ -1,8 +1,8 @@
 "use client";
 
 import type { RunnerInputHandler } from "./runner-input";
-import { usePoseRunnerInput } from "./use-pose-runner-input";
-import { useVoiceRunnerControl } from "./use-voice-runner-control";
+import { useRunnerMotion } from "./use-runner-motion";
+import { useRunnerVoice } from "./use-runner-voice";
 
 type PoseCameraPanelProps = {
   onInput: RunnerInputHandler;
@@ -23,8 +23,8 @@ export function PoseCameraPanel({
   onBackToGames,
   onSelectSubway
 }: PoseCameraPanelProps) {
-  const pose = usePoseRunnerInput(onInput);
-  const voice = useVoiceRunnerControl({
+  const pose = useRunnerMotion(onInput);
+  const voice = useRunnerVoice({
     onCamera: pose.start,
     onStart: onStartGame,
     onPause: onPauseGame,
@@ -33,7 +33,7 @@ export function PoseCameraPanel({
     onRestart: onRestartGame,
     onBackToGames,
     onSelectSubway,
-    onStop: pose.stop
+    onCameraStop: pose.stop
   });
 
   return (
@@ -134,7 +134,7 @@ export function PoseCameraPanel({
   );
 }
 
-function statusLabel(status: ReturnType<typeof usePoseRunnerInput>["status"]) {
+function statusLabel(status: string) {
   if (status === "loading") return "Hazirlanir";
   if (status === "camera") return "Kamera";
   if (status === "calibrated") return "Kalibrasiya";

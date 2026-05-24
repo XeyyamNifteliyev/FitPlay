@@ -6,6 +6,7 @@ import {
   createInitialRunnerState,
   handleRunnerCommand,
   tickRunner,
+  getCurrentTheme,
   type RunnerState
 } from "./engine/runner-engine";
 import { PoseCameraPanel } from "./input/PoseCameraPanel";
@@ -40,7 +41,7 @@ export function SubwayRunner({ onBackToGames }: SubwayRunnerProps) {
   }, []);
 
   return (
-    <section className="runner-shell" aria-label="Subway Runner oyunu">
+    <section className="runner-shell" aria-label="FitRun Metro Chase oyunu">
       <div className="runner-hud" aria-live="polite">
         <div>
           <span className="hud-label">Mesafe</span>
@@ -51,6 +52,14 @@ export function SubwayRunner({ onBackToGames }: SubwayRunnerProps) {
           <strong>{state.score}</strong>
         </div>
         <div>
+          <span className="hud-label">Pul</span>
+          <strong>{state.coins}</strong>
+        </div>
+        <div>
+          <span className="hud-label">Rekord</span>
+          <strong>{state.highScore}</strong>
+        </div>
+        <div>
           <span className="hud-label">Suret</span>
           <strong>{state.speed.toFixed(1)}</strong>
         </div>
@@ -58,10 +67,28 @@ export function SubwayRunner({ onBackToGames }: SubwayRunnerProps) {
           <span className="hud-label">Hereket</span>
           <strong>{movementLabel(state.movement)}</strong>
         </div>
+        {state.powerUp !== "none" ? (
+          <div>
+            <span className="hud-label">Power-up</span>
+            <strong>{powerUpLabel(state.powerUp, state.powerUpTimer)}</strong>
+          </div>
+        ) : null}
+        {state.combo > 0 ? (
+          <div>
+            <span className="hud-label">Combo</span>
+            <strong>x{state.combo}</strong>
+          </div>
+        ) : null}
       </div>
 
       <div className="runner-stage">
         <RunnerScene state={state} onFrame={onFrame} onStart={() => dispatch("start")} />
+        {state.chaser.warningLevel > 0 ? (
+          <div className={`chaser-alert chaser-alert--${state.chaser.warningLevel}`}>
+            <span>Metro muhafizesi yaxinlasir</span>
+            <strong>{Math.max(0, Math.round(state.chaser.distance))} m</strong>
+          </div>
+        ) : null}
         <PoseCameraPanel
           onInput={handleInput}
           onStartGame={() => dispatch("start")}
@@ -75,10 +102,13 @@ export function SubwayRunner({ onBackToGames }: SubwayRunnerProps) {
 
       <div className="runner-controls">
         <span>{lastInput}</span>
-        <span>Sol/Sag ox: zolaq</span>
-        <span>Space: tullan</span>
-        <span>Asagi ox: slide</span>
-        <span>Kamera: tullan, comel, sola/saga eyil</span>
+        <span>Tema: {themeLabel(getCurrentTheme(state))}</span>
+        <span>FitRun Metro Chase: qatarlar, pullar, muhafizeci chase</span>
+        <span>Kamera: sola/saga addim</span>
+        <span>Kamera: tullan</span>
+        <span>Kamera: comel / slide</span>
+        <span>Iki el yuxari: power-up</span>
+        <span>Klaviatura yalniz test ucundur</span>
         <span>R: yeniden basla</span>
         <span>P: pauza</span>
       </div>
@@ -86,6 +116,7 @@ export function SubwayRunner({ onBackToGames }: SubwayRunnerProps) {
       {state.status !== "running" ? (
         <div className="runner-overlay">
           <p>{overlayLabel(state.status)}</p>
+          <span>Kamera qarsisinda tam beden gorunsun, sonra basla de.</span>
           <button
             type="button"
             onClick={() =>
@@ -116,8 +147,28 @@ function movementLabel(movement: RunnerState["movement"]) {
   return "Qacis";
 }
 
+function powerUpLabel(powerUp: RunnerState["powerUp"], timer: number) {
+  const labels: Record<string, string> = {
+    magnet: `Magnet (${timer.toFixed(0)}s)`,
+    shield: "Qalxan",
+    boost: `Boost (${timer.toFixed(0)}s)`,
+    hoverboard: "Hoverboard qoruma"
+  };
+  return labels[powerUp] ?? "";
+}
+
+function themeLabel(theme: string) {
+  const labels: Record<string, string> = {
+    bakuMetro: "Baki Metrosu",
+    icherisheher: "Icherisheher",
+    bulvar: "Bulvar",
+    neonNight: "Neon Gece"
+  };
+  return labels[theme] ?? theme;
+}
+
 function overlayLabel(status: RunnerState["status"]) {
   if (status === "gameOver") return "Oyun bitdi";
   if (status === "paused") return "Pauza";
-  return "Subway Runner hazirdir";
+  return "FitRun Metro Chase hazirdir";
 }

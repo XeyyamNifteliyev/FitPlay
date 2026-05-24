@@ -1,7 +1,7 @@
 import type { PrototypeGameDefinition } from "@/shared/game-engine/prototype-engine";
 
 export const ZUMBA_DEFINITION: PrototypeGameDefinition = {
-  title: "Zumba Dance",
+  title: "Dance Quest",
   theme: "dance",
   durationSeconds: 75,
   highScoreKey: "fitplay:zumba-dance:highscore",

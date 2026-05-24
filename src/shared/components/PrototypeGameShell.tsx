@@ -24,6 +24,37 @@ type PrototypeGameShellProps = {
   onBackToGames: () => void;
 };
 
+const THEME_COPY: Record<
+  PrototypeGameDefinition["theme"],
+  { arena: string; motion: string; prop: string }
+> = {
+  dance: {
+    arena: "Neon dance floor",
+    motion: "Qol, addim ve ritm",
+    prop: "Beat"
+  },
+  boxing: {
+    arena: "Live boxing ring",
+    motion: "Jab, blok ve combo",
+    prop: "Round"
+  },
+  balloon: {
+    arena: "Party sky room",
+    motion: "El ile balon vur",
+    prop: "Pop"
+  },
+  penalty: {
+    arena: "Stadium penalty zone",
+    motion: "Kick ve qapici refleksi",
+    prop: "Shot"
+  },
+  pilates: {
+    arena: "Balance garden",
+    motion: "Poza, nefes ve balans",
+    prop: "Flow"
+  }
+};
+
 export function PrototypeGameShell({
   definition,
   onBackToGames
@@ -36,6 +67,7 @@ export function PrototypeGameShell({
     0,
     Math.min(1, state.beatTimer / definition.beatSeconds)
   );
+  const themeCopy = THEME_COPY[definition.theme];
 
   useEffect(() => {
     setState(createPrototypeGameState(definition));
@@ -114,11 +146,22 @@ export function PrototypeGameShell({
         <div className="prototype-stage">
           <div className="prototype-stage__lights" />
           <div className="prototype-stage__orbit" />
+          <div className="prototype-stage__world" aria-hidden="true">
+            <span className="world-prop world-prop--one" />
+            <span className="world-prop world-prop--two" />
+            <span className="world-prop world-prop--three" />
+            <span className="world-prop world-prop--four" />
+          </div>
           <div
             className="prototype-stage__beat"
             style={{ transform: `scaleX(${beatProgress})` }}
           />
-          <div className="prototype-stage__avatar" aria-hidden="true">
+          <div
+            className={`prototype-stage__avatar prototype-stage__avatar--${definition.theme}`}
+            aria-hidden="true"
+          >
+            <span />
+            <span />
             <span />
             <span />
             <span />
@@ -127,6 +170,11 @@ export function PrototypeGameShell({
             <small>{definition.prompt}</small>
             <strong>{activeAction.label}</strong>
             <em>{activeAction.cue}</em>
+          </div>
+          <div className="prototype-stage__arena-label">
+            <span>{themeCopy.arena}</span>
+            <strong>{themeCopy.prop}</strong>
+            <span>{themeCopy.motion}</span>
           </div>
           <div className="prototype-stage__feedback">
             <span>{state.feedback}</span>
@@ -142,7 +190,8 @@ export function PrototypeGameShell({
                 onClick={() => hit(action.id)}
               >
                 <span>{index + 1}</span>
-                {action.label}
+                <strong>{action.label}</strong>
+                <small>{action.cue}</small>
               </button>
             ))}
           </div>
@@ -166,10 +215,10 @@ export function PrototypeGameShell({
             onClick={() => hit(activeAction.id)}
             disabled={state.status !== "running"}
           >
-            Hereketi vur
+            Aktiv hereket
           </button>
-          <span>1-4: hereketler</span>
-          <span>Space: aktiv hereket</span>
+          <span>Kamera modu: pose input ucun hazirdir</span>
+          <span>Space: test ucun aktiv hereket</span>
           <span>P: pauza</span>
         </div>
 

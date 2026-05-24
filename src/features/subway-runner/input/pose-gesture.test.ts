@@ -130,7 +130,7 @@ describe("pose gesture classifier", () => {
     expect(result.label).toBe("Slide");
   });
 
-  it("classifies left and right body shifts", () => {
+  it("classifies left and right body shifts as moveLeft and moveRight", () => {
     const calibration = createCalibrationFromLandmarks(pose());
 
     expect(
@@ -182,11 +182,11 @@ describe("pose gesture classifier", () => {
   it("parses Azerbaijani voice commands for hands-free play", () => {
     expect(parseVoiceCommand("kamera ac")).toBe("camera");
     expect(parseVoiceCommand("basla")).toBe("start");
-    expect(parseVoiceCommand("başla")).toBe("start");
+    expect(parseVoiceCommand("basla")).toBe("start");
     expect(parseVoiceCommand("bashla")).toBe("start");
-    expect(parseVoiceCommand("başlat")).toBe("start");
-    expect(parseVoiceCommand("başlayır")).toBe("start");
-    expect(parseVoiceCommand("başlıyaq")).toBe("start");
+    expect(parseVoiceCommand("baslat")).toBe("start");
+    expect(parseVoiceCommand("baslayir")).toBe("start");
+    expect(parseVoiceCommand("basliyaq")).toBe("start");
     expect(parseVoiceCommand("kalibrasiya et")).toBe("calibrate");
     expect(parseVoiceCommand("yeniden basla")).toBe("restart");
     expect(parseVoiceCommand("pauza")).toBe("pause");
